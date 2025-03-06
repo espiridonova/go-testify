@@ -2,10 +2,8 @@ package main
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"strconv"
 	"strings"
-	"testing"
 )
 
 var cafeList = map[string][]string{
@@ -44,54 +42,4 @@ func mainHandle(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(answer))
-}
-
-func TestMainHandlerWhenOk(t *testing.T) {
-	req := httptest.NewRequest("GET", "/cafe?count=2&city=moscow", nil)
-
-	responseRecorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(mainHandle)
-	handler.ServeHTTP(responseRecorder, req)
-
-	if status := responseRecorder.Code; status != http.StatusOK {
-		t.Errorf("expected status code: %d, got %d", http.StatusOK, status)
-	}
-	if responseRecorder.Body.String() == "" {
-		t.Error("expected not empty body")
-	}
-}
-
-func TestMainHandlerWhenWrongCity(t *testing.T) {
-	wrongCityMsg := "wrong city value"
-
-	req := httptest.NewRequest("GET", "/cafe?count=2&city=kazan", nil)
-
-	responseRecorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(mainHandle)
-	handler.ServeHTTP(responseRecorder, req)
-
-	if status := responseRecorder.Code; status != http.StatusBadRequest {
-		t.Errorf("expected status code: %d, got %d", http.StatusOK, status)
-	}
-	if responseRecorder.Body.String() != wrongCityMsg {
-		t.Errorf("expected body: %s, got %s", wrongCityMsg, responseRecorder.Body.String())
-	}
-}
-
-func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
-	totalCount := 4
-	req := httptest.NewRequest("GET", "/cafe?count=10&city=moscow", nil)
-
-	responseRecorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(mainHandle)
-	handler.ServeHTTP(responseRecorder, req)
-
-	if status := responseRecorder.Code; status != http.StatusOK {
-		t.Errorf("expected status code: %d, got %d", http.StatusOK, status)
-	}
-
-	count := len(strings.Split(responseRecorder.Body.String(), ","))
-	if totalCount != count {
-		t.Errorf("expected count: %d, got %d", totalCount, count)
-	}
 }
